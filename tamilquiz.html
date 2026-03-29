@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tamil Language Quiz</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; padding: 20px; }
+        .quiz-container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 600px; width: 100%; }
+        h1 { color: #2c3e50; text-align: center; }
+        .question { font-size: 1.2rem; margin-bottom: 20px; font-weight: bold; }
+        .options { display: grid; gap: 10px; }
+        button { padding: 12px; border: 1px solid #ddd; border-radius: 8px; background: #fff; cursor: pointer; transition: 0.3s; text-align: left; font-size: 1rem; }
+        button:hover { background: #e1f5fe; border-color: #03a9f4; }
+        .score-area { text-align: center; display: none; }
+        .correct { background-color: #c8e6c9 !important; border-color: #4caf50 !important; }
+        .wrong { background-color: #ffcdd2 !important; border-color: #f44336 !important; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container" id="quiz">
+    <div id="quiz-header">
+        <h1>Tamil Phonics Quiz</h1>
+        <p id="question-text" class="question">Loading question...</p>
+        <div id="options-container" class="options"></div>
+    </div>
+    <div id="result-area" class="score-area">
+        <h2>Quiz Completed!</h2>
+        <p id="final-score"></p>
+        <button onclick="location.reload()" style="text-align:center; background:#03a9f4; color:white;">Restart Quiz</button>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        {
+            q: "Which word correctly uses the 'Simple La' (ல) for 'Right' direction?",
+            a: ["வலது (Valadhu)", "வளம் (Valam)", "வலம் (Valam)"],
+            correct: 0
+        },
+        {
+            q: "Which 'N' sound is used at the START of a word (e.g., Nandri)?",
+            a: ["ண (Three-loop)", "ன (Two-loop)", "ந (Dental)"],
+            correct: 2
+        },
+        {
+            q: "What does 'வளம்' (Valam with ள) mean?",
+            a: ["Right side", "Wealth/Prosperity", "To go around"],
+            correct: 1
+        }
+    ];
+
+    let currentIdx = 0;
+    let score = 0;
+
+    function loadQuestion() {
+        const qText = document.getElementById("question-text");
+        const optionsContainer = document.getElementById("options-container");
+        optionsContainer.innerHTML = "";
+
+        let currentQ = quizData[currentIdx];
+        qText.innerText = currentQ.q;
+
+        currentQ.a.forEach((option, index) => {
+            const btn = document.createElement("button");
+            btn.innerText = option;
+            btn.onclick = () => checkAnswer(index, btn);
+            optionsContainer.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(selected, btn) {
+        const btns = document.querySelectorAll(".options button");
+        btns.forEach(b => b.disabled = true);
+
+        if (selected === quizData[currentIdx].correct) {
+            score++;
+            btn.classList.add("correct");
+        } else {
+            btn.classList.add("wrong");
+            btns[quizData[currentIdx].correct].classList.add("correct");
+        }
+
+        setTimeout(() => {
+            currentIdx++;
+            if (currentIdx < quizData.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }, 1500);
+    }
+
+    function showResults() {
+        document.getElementById("quiz-header").style.display = "none";
+        const resultArea = document.getElementById("result-area");
+        resultArea.style.display = "block";
+        document.getElementById("final-score").innerText = `You scored ${score} out of ${quizData.length}`;
+    }
+
+    loadQuestion();
+</script>
+
+</body>
+</html>
