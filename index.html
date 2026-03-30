@@ -6,46 +6,50 @@
     <title>Tamil Phonics Quiz</title>
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .quiz-container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-width: 500px; width: 90%; }
-        h1 { color: #1a73e8; text-align: center; font-size: 24px; margin-bottom: 20px; }
-        .question { font-size: 1.1rem; margin-bottom: 20px; line-height: 1.5; color: #333; min-height: 50px; }
+        .quiz-container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-width: 500px; width: 90%; position: relative; }
+        
+        .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; color: #667; font-size: 0.9rem; font-weight: bold; }
+        h1 { color: #1a73e8; text-align: center; font-size: 22px; margin-top: 0; }
+        
+        .question { font-size: 1.1rem; margin-bottom: 20px; color: #333; min-height: 50px; font-weight: 500; }
         .options { display: flex; flex-direction: column; gap: 12px; }
         
-        button { 
-            padding: 15px; 
-            border: 2px solid #e0e0e0; 
-            border-radius: 10px; 
-            background: #fff; 
-            cursor: pointer; 
-            font-size: 1rem; 
-            transition: all 0.2s ease;
-            outline: none;
-        }
-
+        button { padding: 15px; border: 2px solid #e0e0e0; border-radius: 10px; background: #fff; cursor: pointer; font-size: 1rem; transition: 0.2s; outline: none; }
         button:hover:not(:disabled) { border-color: #1a73e8; background-color: #f8fbff; }
 
-        /* Status Colors */
         .correct { background-color: #e6ffed !important; border-color: #28a745 !important; color: #155724; font-weight: bold; }
         .wrong { background-color: #ffeef0 !important; border-color: #d73a49 !important; color: #721c24; }
+
+        /* Hint Styles */
+        .hint-btn { background: none; border: none; color: #1a73e8; font-size: 0.9rem; cursor: pointer; text-decoration: underline; margin-top: 15px; display: block; width: 100%; text-align: center; }
+        #hint-text { font-style: italic; color: #555; font-size: 0.85rem; text-align: center; margin-top: 10px; display: none; background: #fff9c4; padding: 8px; border-radius: 5px; }
         
         #result-area { text-align: center; display: none; }
-        .score-text { font-size: 1.5rem; margin: 20px 0; color: #1a73e8; font-weight: bold; }
-        .restart-btn { background: #1a73e8; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; margin-top: 10px; }
+        .score-text { font-size: 2rem; margin: 20px 0; color: #1a73e8; font-weight: bold; }
+        .restart-btn { background: #1a73e8; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="quiz-container">
     <div id="quiz-header">
-        <h1>Tamil Phonics Quiz</h1>
+        <div class="progress-header">
+            <span>Tamil Lesson</span>
+            <span id="counter">Question 1 of 4</span>
+        </div>
+        <h1>Phonics & Vocabulary</h1>
         <div id="question-text" class="question"></div>
         <div id="options-container" class="options"></div>
+        
+        <button id="hint-btn" class="hint-btn" onclick="toggleHint()">Need a hint?</button>
+        <div id="hint-text"></div>
     </div>
 
     <div id="result-area">
-        <h2>🎉 Lesson Complete!</h2>
+        <h2>🎉 Well Done!</h2>
+        <p>Your Final Score:</p>
         <p class="score-text" id="final-score"></p>
-        <button class="restart-btn" onclick="location.reload()">Try Again</button>
+        <button class="restart-btn" onclick="location.reload()">Restart Quiz</button>
     </div>
 </div>
 
@@ -54,22 +58,26 @@
         {
             q: "Which 'L' is used for 'Right' (Valadhu)?",
             a: ["வலது (Simple L)", "வளம் (Retroflex L)", "வலம் (Circumambulation)"],
-            correct: 0
+            correct: 0,
+            hint: "Think of the 'L' used in English 'Light' or 'Long'."
         },
         {
             q: "Which 'N' sound is used for 'Thank You' (Nandri)?",
             a: ["ண (Three-loop)", "ன (Two-loop)", "ந (Dental)"],
-            correct: 2
+            correct: 2,
+            hint: "This 'N' is almost always the one used to START a word."
         },
         {
             q: "What does 'வளம்' (Valam with ள) mean?",
-            a: ["Right side", "Wealth/Prosperity", "Going around"],
-            correct: 1
+            a: ["Right side", "Wealth/Prosperity", "To go around"],
+            correct: 1,
+            hint: "This 'L' sound (ள) is associated with abundance and natural resources."
         },
         {
             q: "How do you spell 'Money' (Panam)?",
             a: ["பனம்", "பணம்", "பநம"],
-            correct: 1
+            correct: 1,
+            hint: "Money uses the 'three-loop' N (ண) where the tongue curls back the most."
         }
     ];
 
@@ -79,13 +87,20 @@
     function loadQuestion() {
         const qText = document.getElementById("question-text");
         const optionsContainer = document.getElementById("options-container");
+        const counter = document.getElementById("counter");
+        const hintBox = document.getElementById("hint-text");
         
-        // Reset view
-        optionsContainer.innerHTML = "";
-        let currentQ = quizData[currentIdx];
-        qText.innerText = `Q${currentIdx + 1}: ${currentQ.q}`;
+        // Update Counter
+        counter.innerText = `Question ${currentIdx + 1} of ${quizData.length}`;
+        
+        // Reset Hint
+        hintBox.style.display = "none";
+        hintBox.innerText = quizData[currentIdx].hint;
 
-        currentQ.a.forEach((option, index) => {
+        optionsContainer.innerHTML = "";
+        qText.innerText = quizData[currentIdx].q;
+
+        quizData[currentIdx].a.forEach((option, index) => {
             const btn = document.createElement("button");
             btn.innerText = option;
             btn.onclick = () => checkAnswer(index, btn);
@@ -93,11 +108,15 @@
         });
     }
 
+    function toggleHint() {
+        const hintBox = document.getElementById("hint-text");
+        hintBox.style.display = hintBox.style.display === "none" ? "block" : "none";
+    }
+
     function checkAnswer(selectedIdx, clickedBtn) {
         const allButtons = document.querySelectorAll(".options button");
         const correctIdx = quizData[currentIdx].correct;
 
-        // Disable all buttons immediately so they can't click twice
         allButtons.forEach(btn => btn.disabled = true);
 
         if (selectedIdx === correctIdx) {
@@ -105,10 +124,9 @@
             clickedBtn.classList.add("correct");
         } else {
             clickedBtn.classList.add("wrong");
-            allButtons[correctIdx].classList.add("correct"); // Show them the right one
+            allButtons[correctIdx].classList.add("correct");
         }
 
-        // Wait 1.5 seconds, then move on
         setTimeout(() => {
             currentIdx++;
             if (currentIdx < quizData.length) {
@@ -116,7 +134,7 @@
             } else {
                 showResults();
             }
-        }, 1500);
+        }, 1800); // Slightly longer wait so they can read the correct answer
     }
 
     function showResults() {
@@ -126,7 +144,6 @@
         document.getElementById("final-score").innerText = `${score} / ${quizData.length}`;
     }
 
-    // Start the quiz
     loadQuestion();
 </script>
 
