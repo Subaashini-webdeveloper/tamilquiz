@@ -3,50 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tamil Language Quiz</title>
+    <title>Tamil Phonics Quiz</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; padding: 20px; }
-        .quiz-container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 600px; width: 100%; }
-        h1 { color: #2c3e50; text-align: center; }
-        .question { font-size: 1.2rem; margin-bottom: 20px; font-weight: bold; }
-        .options { display: grid; gap: 10px; }
-        button { padding: 12px; border: 1px solid #ddd; border-radius: 8px; background: #fff; cursor: pointer; transition: 0.3s; text-align: left; font-size: 1rem; }
-        button:hover { background: #e1f5fe; border-color: #03a9f4; }
-        .score-area { text-align: center; display: none; }
-        .correct { background-color: #c8e6c9 !important; border-color: #4caf50 !important; }
-        .wrong { background-color: #ffcdd2 !important; border-color: #f44336 !important; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .quiz-container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-width: 500px; width: 90%; }
+        h1 { color: #1a73e8; text-align: center; font-size: 24px; margin-bottom: 20px; }
+        .question { font-size: 1.1rem; margin-bottom: 20px; line-height: 1.5; color: #333; min-height: 50px; }
+        .options { display: flex; flex-direction: column; gap: 12px; }
+        
+        button { 
+            padding: 15px; 
+            border: 2px solid #e0e0e0; 
+            border-radius: 10px; 
+            background: #fff; 
+            cursor: pointer; 
+            font-size: 1rem; 
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        button:hover:not(:disabled) { border-color: #1a73e8; background-color: #f8fbff; }
+
+        /* Status Colors */
+        .correct { background-color: #e6ffed !important; border-color: #28a745 !important; color: #155724; font-weight: bold; }
+        .wrong { background-color: #ffeef0 !important; border-color: #d73a49 !important; color: #721c24; }
+        
+        #result-area { text-align: center; display: none; }
+        .score-text { font-size: 1.5rem; margin: 20px 0; color: #1a73e8; font-weight: bold; }
+        .restart-btn { background: #1a73e8; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-<div class="quiz-container" id="quiz">
+<div class="quiz-container">
     <div id="quiz-header">
         <h1>Tamil Phonics Quiz</h1>
-        <p id="question-text" class="question">Loading question...</p>
+        <div id="question-text" class="question"></div>
         <div id="options-container" class="options"></div>
     </div>
-    <div id="result-area" class="score-area">
-        <h2>Quiz Completed!</h2>
-        <p id="final-score"></p>
-        <button onclick="location.reload()" style="text-align:center; background:#03a9f4; color:white;">Restart Quiz</button>
+
+    <div id="result-area">
+        <h2>🎉 Lesson Complete!</h2>
+        <p class="score-text" id="final-score"></p>
+        <button class="restart-btn" onclick="location.reload()">Try Again</button>
     </div>
 </div>
 
 <script>
     const quizData = [
         {
-            q: "Which word correctly uses the 'Simple La' (ல) for 'Right' direction?",
-            a: ["வலது (Valadhu)", "வளம் (Valam)", "வலம் (Valam)"],
+            q: "Which 'L' is used for 'Right' (Valadhu)?",
+            a: ["வலது (Simple L)", "வளம் (Retroflex L)", "வலம் (Circumambulation)"],
             correct: 0
         },
         {
-            q: "Which 'N' sound is used at the START of a word (e.g., Nandri)?",
+            q: "Which 'N' sound is used for 'Thank You' (Nandri)?",
             a: ["ண (Three-loop)", "ன (Two-loop)", "ந (Dental)"],
             correct: 2
         },
         {
             q: "What does 'வளம்' (Valam with ள) mean?",
-            a: ["Right side", "Wealth/Prosperity", "To go around"],
+            a: ["Right side", "Wealth/Prosperity", "Going around"],
+            correct: 1
+        },
+        {
+            q: "How do you spell 'Money' (Panam)?",
+            a: ["பனம்", "பணம்", "பநம"],
             correct: 1
         }
     ];
@@ -57,10 +79,11 @@
     function loadQuestion() {
         const qText = document.getElementById("question-text");
         const optionsContainer = document.getElementById("options-container");
+        
+        // Reset view
         optionsContainer.innerHTML = "";
-
         let currentQ = quizData[currentIdx];
-        qText.innerText = currentQ.q;
+        qText.innerText = `Q${currentIdx + 1}: ${currentQ.q}`;
 
         currentQ.a.forEach((option, index) => {
             const btn = document.createElement("button");
@@ -70,18 +93,22 @@
         });
     }
 
-    function checkAnswer(selected, btn) {
-        const btns = document.querySelectorAll(".options button");
-        btns.forEach(b => b.disabled = true);
+    function checkAnswer(selectedIdx, clickedBtn) {
+        const allButtons = document.querySelectorAll(".options button");
+        const correctIdx = quizData[currentIdx].correct;
 
-        if (selected === quizData[currentIdx].correct) {
+        // Disable all buttons immediately so they can't click twice
+        allButtons.forEach(btn => btn.disabled = true);
+
+        if (selectedIdx === correctIdx) {
             score++;
-            btn.classList.add("correct");
+            clickedBtn.classList.add("correct");
         } else {
-            btn.classList.add("wrong");
-            btns[quizData[currentIdx].correct].classList.add("correct");
+            clickedBtn.classList.add("wrong");
+            allButtons[correctIdx].classList.add("correct"); // Show them the right one
         }
 
+        // Wait 1.5 seconds, then move on
         setTimeout(() => {
             currentIdx++;
             if (currentIdx < quizData.length) {
@@ -96,9 +123,10 @@
         document.getElementById("quiz-header").style.display = "none";
         const resultArea = document.getElementById("result-area");
         resultArea.style.display = "block";
-        document.getElementById("final-score").innerText = `You scored ${score} out of ${quizData.length}`;
+        document.getElementById("final-score").innerText = `${score} / ${quizData.length}`;
     }
 
+    // Start the quiz
     loadQuestion();
 </script>
 
