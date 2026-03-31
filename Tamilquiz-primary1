@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kids Tamil Quiz!</title>
+    <style>
+        body { font-family: 'Comic Sans MS', cursive, sans-serif; background-color: #FFEB3B; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .quiz-container { background: white; padding: 25px; border-radius: 30px; box-shadow: 0 15px 0px #FBC02D; max-width: 450px; width: 90%; text-align: center; border: 5px solid #FFA000; }
+        
+        .progress-header { color: #F57C00; font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; }
+        h1 { color: #E91E63; font-size: 28px; margin: 10px 0; }
+        
+        .question { font-size: 1.5rem; margin-bottom: 20px; color: #333; }
+        .emoji-display { font-size: 80px; margin-bottom: 20px; display: block; }
+        
+        .options { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        
+        button { padding: 20px; border: 3px solid #eee; border-radius: 20px; background: #f9f9f9; cursor: pointer; font-size: 1.2rem; font-weight: bold; transition: 0.2s; }
+        button:hover:not(:disabled) { background-color: #E3F2FD; border-color: #2196F3; }
+
+        .correct { background-color: #C8E6C9 !important; border-color: #4CAF50 !important; transform: scale(1.05); }
+        .wrong { background-color: #FFCDD2 !important; border-color: #F44336 !important; }
+
+        #hint-text { font-style: italic; color: #1565C0; font-size: 1rem; margin-top: 15px; display: none; background: #E1F5FE; padding: 10px; border-radius: 15px; }
+        
+        #result-area { display: none; }
+        .star-rating { font-size: 3rem; color: #FFD600; margin: 10px 0; }
+        .restart-btn { background: #E91E63; color: white; border: none; padding: 15px 30px; border-radius: 50px; cursor: pointer; font-size: 1.2rem; box-shadow: 0 5px 0 #AD1457; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div id="quiz-header">
+        <div class="progress-header" id="counter">Question 1</div>
+        <h1>Fun Tamil Quiz! 🌟</h1>
+        <div id="emoji-box" class="emoji-display">🍎</div>
+        <div id="question-text" class="question">What is this?</div>
+        <div id="options-container" class="options"></div>
+        <div id="hint-text"></div>
+    </div>
+
+    <div id="result-area">
+        <h1>Super Job! 🥳</h1>
+        <div class="star-rating">⭐⭐⭐</div>
+        <p style="font-size: 1.5rem;">You got <span id="final-score"></span> correct!</p>
+        <button class="restart-btn" onclick="location.reload()">Play Again!</button>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+    // --- FRUITS ---
+    {
+        q: "What is this fruit called?",
+        emoji: "🍎",
+        a: ["ஆப்பிள் (Apple)", "மாம்பழம் (Mango)"],
+        correct: 0,
+        hint: "It starts with the letter 'Aa' (ஆ)!"
+    },
+    // --- FAMILY ---
+    {
+        q: "Which one is 'Amma'?",
+        emoji: "👩‍👧",
+        a: ["அப்பா (Appa)", "அம்மா (Amma)"],
+        correct: 1,
+        hint: "She loves you very much!"
+    },
+    // --- COLORS ---
+    {
+        q: "What color is this circle?",
+        emoji: "🔴",
+        a: ["சிவப்பு (Red)", "பச்சை (Green)"],
+        correct: 0,
+        hint: "It's the color of a tomato or a ladybug!"
+    },
+    // --- NUMBERS ---
+    {
+        q: "How many fingers are being shown?",
+        emoji: "🖐️",
+        a: ["நான்கு (Four)", "ஐந்து (Five)"],
+        correct: 1,
+        hint: "Count them: One, Two, Three, Four..."
+    },
+    // --- ANIMALS ---
+    {
+        q: "Which animal is 'Yaanai'?",
+        emoji: "🐘",
+        a: ["யானை (Elephant)", "பூனை (Cat)"],
+        correct: 0,
+        hint: "This animal has a very long trunk!"
+    },
+    {
+        q: "What does the 'Poonai' say?",
+        emoji: "🐱",
+        a: ["வள் வள் (Woof)", "மியாவ் (Meow)"],
+        correct: 1,
+        hint: "It's a small pet that likes milk."
+    },
+    {
+        q: "Which one is a 'Singam'?",
+        emoji: "🦁",
+        a: ["சிங்கம் (Lion)", "குரங்கு (Monkey)"],
+        correct: 0,
+        hint: "He is the King of the Forest!"
+    },
+    // --- VEHICLES ---
+    {
+        q: "What is this 'Vandi' called?",
+        emoji: "🚗",
+        a: ["கார் (Car)", "பஸ் (Bus)"],
+        correct: 0,
+        hint: "Your family uses this to go to the shop."
+    },
+    {
+        q: "Which one flies in the sky?",
+        emoji: "✈️",
+        a: ["ரயில் (Train)", "விமானம் (Aeroplane)"],
+        correct: 1,
+        hint: "It has wings like a big bird!"
+    },
+    // --- NATURE ---
+    {
+        q: "What is this called in Tamil?",
+        emoji: "☀️",
+        a: ["நிலா (Moon)", "சூரியன் (Sun)"],
+        correct: 1,
+        hint: "It shines bright during the daytime!"
+    }
+];
+
+    let currentIdx = 0;
+    let score = 0;
+
+    function loadQuestion() {
+        const qText = document.getElementById("question-text");
+        const emojiBox = document.getElementById("emoji-box");
+        const optionsContainer = document.getElementById("options-container");
+        const counter = document.getElementById("counter");
+        
+        counter.innerText = `Question ${currentIdx + 1} of ${quizData.length}`;
+        emojiBox.innerText = quizData[currentIdx].emoji;
+        qText.innerText = quizData[currentIdx].q;
+        optionsContainer.innerHTML = "";
+
+        quizData[currentIdx].a.forEach((option, index) => {
+            const btn = document.createElement("button");
+            btn.innerText = option;
+            btn.onclick = () => checkAnswer(index, btn);
+            optionsContainer.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(selectedIdx, clickedBtn) {
+        const allButtons = document.querySelectorAll(".options button");
+        const correctIdx = quizData[currentIdx].correct;
+
+        allButtons.forEach(btn => btn.disabled = true);
+
+        if (selectedIdx === correctIdx) {
+            score++;
+            clickedBtn.classList.add("correct");
+        } else {
+            clickedBtn.classList.add("wrong");
+            allButtons[correctIdx].classList.add("correct");
+        }
+
+        setTimeout(() => {
+            currentIdx++;
+            if (currentIdx < quizData.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }, 1500);
+    }
+
+    function showResults() {
+        document.getElementById("quiz-header").style.display = "none";
+        document.getElementById("result-area").style.display = "block";
+        document.getElementById("final-score").innerText = score;
+    }
+
+    loadQuestion();
+</script>
+
+</body>
+</html>
