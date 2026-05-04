@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tamil Vowel Ordering Quiz</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; flex-direction: column; align-items: center; background-color: #f9f9f9; }
+        .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 90%; max-width: 400px; margin-top: 20px; }
+        h2 { color: #2c3e50; font-size: 1.2rem; }
+        
+        /* Slot Styles */
+        .slot-container { margin-bottom: 20px; }
+        .row { display: flex; align-items: center; margin-bottom: 8px; }
+        .number { width: 30px; font-weight: bold; color: #555; }
+        .slot { width: 100px; height: 35px; border: 2px solid #cfe2f3; border-radius: 6px; background-color: #eaf4fb; display: flex; align-items: center; justify-content: center; transition: background 0.3s; }
+        .slot.drag-over { background-color: #d1e7dd; border-color: #a3cfbb; }
+
+        /* Vowel Styles */
+        .vowel-bank { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; padding: 15px; border-top: 1px solid #eee; }
+        .vowel { padding: 8px 15px; background: #eee; border: 1px solid #ccc; border-radius: 4px; cursor: grab; font-size: 1.2rem; user-select: none; }
+        .vowel:active { cursor: grabbing; }
+
+        /* UI Elements */
+        #check-btn { background: #0066cc; color: white; border: none; padding: 10px 25px; border-radius: 20px; cursor: pointer; font-size: 1rem; margin-top: 15px; width: 100%; }
+        #check-btn:hover { background: #0052a3; }
+        .correct { background-color: #d1e7dd !important; border-color: #198754 !important; }
+        .incorrect { background-color: #f8d7da !important; border-color: #dc3545 !important; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Drag the vowels to the correct order</h2>
+    
+    <div class="slot-container" id="slots">
+        <!-- 12 slots will be generated here -->
+    </div>
+
+    <div class="vowel-bank" id="vowel-bank">
+        <!-- Vowels will be generated here -->
+    </div>
+
+    <button id="check-btn" onclick="checkAnswers()">Check</button>
+</div>
+
+<script>
+    const correctOrder = ["அ", "ஆ", "இ", "ஈ", "உ", "ஊ", "எ", "ஏ", "ஐ", "ஒ", "ஓ", "ஔ"];
+    let scrambled = [...correctOrder].sort(() => Math.random() - 0.5);
+
+    const slotsDiv = document.getElementById('slots');
+    const bankDiv = document.getElementById('vowel-bank');
+
+    // Initialize Slots
+    for (let i = 0; i < 12; i++) {
+        const row = document.createElement('div');
+        row.className = 'row';
+        row.innerHTML = `
+            <div class="number">${i + 1}</div>
+            <div class="slot" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" data-index="${i}"></div>
+        `;
+        slotsDiv.appendChild(row);
+    }
+
+    // Initialize Vowels
+    scrambled.forEach((vowel, index) => {
+        const span = document.createElement('div');
+        span.className = 'vowel';
+        span.draggable = true;
+        span.id = 'vowel-' + index;
+        span.innerText = vowel;
+        span.ondragstart = drag;
+        bankDiv.appendChild(span);
+    });
+
+    // Drag and Drop Logic
+    function allowDrop(ev) {
+        ev.preventDefault();
+        ev.target.classList.add('drag-over');
+    }
+
+    function dragLeave(ev) {
+        ev.target.classList.remove('drag-over');
+    }
+
+    function drag(ev) {
+        ev.dataTransfer.setData("text", ev.target.id);
+    }
+
+    function drop(ev) {
+        ev.preventDefault();
+        ev.target.classList.remove('drag-over');
+        const data = ev.dataTransfer.getData("text");
+        const draggedElement = document.getElementById(data);
+        
+        // If the slot already has a child, move it back to bank (optional)
+        if (ev.target.classList.contains('slot') && ev.target.children.length === 0) {
+            ev.target.appendChild(draggedElement);
+        }
+    }
+
+    function checkAnswers() {
+        const slots = document.querySelectorAll('.slot');
+        slots.forEach((slot, index) => {
+            if (slot.firstChild && slot.firstChild.innerText === correctOrder[index]) {
+                slot.className = 'slot correct';
+            } else {
+                slot.className = 'slot incorrect';
+            }
+        });
+    }
+</script>
+
+</body>
+</html>

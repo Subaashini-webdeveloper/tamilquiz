@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drag & Drop Geography Quiz</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            padding: 40px;
+            background-color: #f4f7f6;
+        }
+
+        .quiz-container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+
+        h3 { color: #333; margin-top: 0; }
+
+        .options {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            min-height: 50px;
+            padding: 10px;
+            border: 1px dashed #ccc;
+            border-radius: 8px;
+        }
+
+        .draggable {
+            padding: 8px 16px;
+            background-color: #007bff;
+            color: white;
+            border-radius: 4px;
+            cursor: grab;
+            user-select: none;
+        }
+
+        .draggable:active { cursor: grabbing; }
+
+        .targets { margin-bottom: 20px; }
+
+        .dropzone-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .dropzone {
+            width: 150px;
+            height: 40px;
+            border: 2px dashed #cbd5e0;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .dropzone.hover {
+            background-color: #ebf8ff;
+            border-color: #4299e1;
+        }
+
+        .controls { display: flex; gap: 10px; }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .check-btn { background-color: #28a745; color: white; }
+        .reset-btn { background-color: #6c757d; color: white; }
+
+        #feedback {
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <h3>Tamil Alphabets</h3>
+    <p>Drag the numbers to their corresponding places:</p>
+    
+    <div class="options" id="options-bin">
+        <div id="no_12" class="draggable" draggable="true">12</div>
+        <div id="no_1" class="draggable" draggable="true">1</div>
+        <div id="no_18" class="draggable" draggable="true">18</div>
+        <div id="no_216" class="draggable" draggable="true">216</div>
+    </div>
+
+    <div class="targets">
+        <div class="dropzone-container">
+            <span>Uyir ezhuthukal motham</span>
+            <div class="dropzone" data-answer="no_12"></div>
+        </div>
+        <div class="dropzone-container">
+            <span>Ayutha ezhuthu motham</span>
+            <div class="dropzone" data-answer="no_1"></div>
+        </div>
+        <div class="dropzone-container">
+            <span>mei ezhuthukal motham</span>
+            <div class="dropzone" data-answer="no_18"></div>
+        </div>
+        <div class="dropzone-container">
+            <span>Uyir mei ezhuthukal motham</span>
+            <div class="dropzone" data-answer="no_216"></div>
+        </div>
+    </div>
+    
+    <div class="controls">
+        <button class="check-btn" onclick="checkResults()">Check Score</button>
+        <button class="reset-btn" onclick="resetQuiz()">Reset</button>
+    </div>
+
+    <p id="feedback"></p>
+</div>
+
+<script>
+    const draggables = document.querySelectorAll('.draggable');
+    const dropzones = document.querySelectorAll('.dropzone');
+
+    // Drag Logic
+    draggables.forEach(drag => {
+        drag.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', e.target.id);
+        });
+    });
+
+    dropzones.forEach(zone => {
+        zone.addEventListener('dragover', (e) => {
+            e.preventDefault(); // Required to allow drop
+            zone.classList.add('hover');
+        });
+
+        zone.addEventListener('dragleave', () => {
+            zone.classList.remove('hover');
+        });
+
+        zone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            zone.classList.remove('hover');
+            const id = e.dataTransfer.getData('text/plain');
+            const element = document.getElementById(id);
+            
+            // Append the element to the zone
+            if (zone.children.length === 0) {
+                zone.appendChild(element);
+            }
+        });
+    });
+
+    function checkResults() {
+        let score = 0;
+        let complete = true;
+
+        dropzones.forEach(zone => {
+            const item = zone.querySelector('.draggable');
+            if (!item) {
+                complete = false;
+                zone.style.borderColor = "#cbd5e0";
+            } else if (item.id === zone.dataset.answer) {
+                zone.style.backgroundColor = "#d4edda";
+                zone.style.borderColor = "#28a745";
+                score++;
+            } else {
+                zone.style.backgroundColor = "#f8d7da";
+                zone.style.borderColor = "#dc3545";
+            }
+        });
+
+        const feedback = document.getElementById('feedback');
+        if (!complete) {
+            feedback.innerText = "Please fill all slots before checking!";
+            feedback.style.color = "#856404";
+        } else {
+            feedback.innerText = `Final Score: ${score} / 4`;
+            feedback.style.color = score === 4 ? "#155724" : "#721c24";
+        }
+    }
+
+    function resetQuiz() {
+        const bin = document.getElementById('options-bin');
+        draggables.forEach(drag => bin.appendChild(drag));
+        dropzones.forEach(zone => {
+            zone.style.backgroundColor = "transparent";
+            zone.style.borderColor = "#cbd5e0";
+        });
+        document.getElementById('feedback').innerText = "";
+    }
+</script>
+
+</body>
+</html>
